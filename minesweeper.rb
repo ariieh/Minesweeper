@@ -1,3 +1,7 @@
+#encoding: utf-8
+#colorize gem
+#clear each time
+
 class Minesweeper
   
   def initialize
@@ -24,29 +28,20 @@ class Minesweeper
   end
   
   def make_move(command, move)
-    if command == "f"
-      @board[*move].flag!
-    else # command == 'r'
-      @board.uncover(move)
-    end
+    command == "f" ? @board[*move].flag! : @board.uncover(move)
   end
   
   def win?
-    return true if @board.all? do |row, col|
-      if @board[row, col].value == :mine
-        @board[row, col].flagged?
-      else
-        !@board[row, col].flagged?
-      end
+    @board.all? do |row, col|
+      tile = @board[row, col]
+      tile.value == :mine ? tile.flagged? : !tile.flagged?
     end
-    false
   end
   
   def lose?
-    return true if @board.any? do |row, col|
+    @board.any? do |row, col|
       @board[row, col].value == :mine && @board[row, col].revealed?
     end
-    false
   end
   
   def get_input
@@ -57,12 +52,16 @@ class Minesweeper
       input = gets.chomp.downcase.split(",")
       if input.count != 3
         raise "Wrong number of inputs!"
+        
       elsif input[0] != "r" && input[0] != "f"
         raise "Wrong action!"
-      elsif !input[1].to_i.between?(1,Board::BOARD_SIDE_LENGTH)
+        
+      elsif !input[1].to_i.between?(1, Board::BOARD_SIDE_LENGTH)
         raise "Invalid x coordinate!"
-      elsif !input[2].to_i.between?(1,Board::BOARD_SIDE_LENGTH)
+        
+      elsif !input[2].to_i.between?(1, Board::BOARD_SIDE_LENGTH)
         raise "Invalid y coordinate!"
+        
       else
         input[1..2] = input[1..2].map(&:to_i)
         input
@@ -76,23 +75,34 @@ class Minesweeper
 end
 
 class Board
-  BOARD_SIDE_LENGTH = 4
-  NUM_MINES = BOARD_SIDE_LENGTH**2/8
-  
+  BOARD_SIDE_LENGTH = 9
+  NUM_MINES = (BOARD_SIDE_LENGTH ** 2) / 8
+  POSITION_DELTAS = [
+    [1, 1], [1, 0], [1, -1],
+    [0, 1], [0, 0], [0, -1],
+    [-1, 1], [-1, 0], [-1, -1]
+  ]
+    
   def initialize
     @board = Array.new(BOARD_SIDE_LENGTH){ Array.new(BOARD_SIDE_LENGTH) }
     
     elements = Array.new(NUM_MINES, :mine) 
-    elements.concat(Array.new(BOARD_SIDE_LENGTH**2 - NUM_MINES)).shuffle!
+    elements.concat(Array.new(BOARD_SIDE_LENGTH ** 2 - NUM_MINES)).shuffle!
     
     setup_tiles(elements)
   end
   
   def setup_tiles(elements)
-    each { |row, col| @board[row][col] = Tile.new(elements.pop) }
+    each do |row, col| 
+      @board[row][col] = Tile.new(elements.pop)
+    end
+    
     each do |row, col|
-      neighbors = surrounding_tiles([row, col]).map{|x, y| self[x, y]}
-      nearby_mines = neighbors.select { |tile| tile.value == :mine }.count
+      
+      nearby_mines = surrounding_tiles([row, col]).select do |tile| 
+        tile.value == :mine
+      end.count
+      
       @board[row][col].num_mines = nearby_mines
     end
   end
@@ -137,6 +147,7 @@ class Board
   end
   
   def print_final_state
+    #flatten array
    each do |row, col|
       self[row, col].flag! if self[row, col].flagged?
       self[row, col].reveal! 
@@ -147,25 +158,28 @@ class Board
     @board[x][y]
   end
   
-  def surrounding_tiles(pos)
+  def surrounding_positions(pos)
     x, y = pos
-    [[x + 1, y + 1], [x + 1, y], [x + 1, y - 1],
-    [x - 1, y + 1], [x - 1, y], [x - 1, y - 1],
-    [x, y + 1], [x, y], [x, y - 1]].select do |x, y| 
+    
+    POSITION_DELTAS.map{|dx, dy| [x + dx, y + dy]}.select do |x, y| 
       x.between?(0, Board::BOARD_SIDE_LENGTH - 1) &&
       y.between?(0, Board::BOARD_SIDE_LENGTH - 1)
     end
   end
   
+  def surrounding_tiles(pos)
+    surrounding_positions(pos).map { |x, y| self[x, y] }
+  end
+  
   def uncover(move)
     queue = [move]
-    
+    #consider moving to tile class
     until queue.empty?
       move = queue.shift
       self[*move].reveal!
       
-      neighbors = surrounding_tiles(move)
-      if neighbors.map{|x, y| self[x, y]}.none? { |tile| tile.value == :mine }
+      neighbors = surrounding_positions(move)
+      if surrounding_tiles(move).none? { |tile| tile.value == :mine }
         queue += neighbors.reject{ |pos| self[*pos].revealed? }
       end
     end
