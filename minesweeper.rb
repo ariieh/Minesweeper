@@ -2,6 +2,8 @@
 #colorize gem
 #clear each time
 
+require 'yaml'
+
 class Minesweeper
   
   def initialize
@@ -15,11 +17,9 @@ class Minesweeper
       make_move(command, [x - 1, y - 1])
 
       if win?
-        puts "You win!"
-        break
+        puts "You win!"; break
       elsif lose?
-        puts "You lose!"
-        break
+        puts "You lose!"; break
       end
 
     end
@@ -48,9 +48,12 @@ class Minesweeper
     move = []
     
     begin
-      puts "Enter a move: (r/f,x,y)"
+      puts "Enter a move (r/f,x,y) or type save"
       input = gets.chomp.downcase.split(",")
-      if input.count != 3
+      if input[0] == "save"
+        save("minesweeper.yaml")
+        abort("Game saved!")
+      elsif input.count != 3
         raise "Wrong number of inputs!"
         
       elsif input[0] != "r" && input[0] != "f"
@@ -72,6 +75,15 @@ class Minesweeper
     end
   end
   
+  def save(file_path)
+    File.open(file_path, "w") do |f|
+      f.puts to_yaml
+    end
+  end
+  
+  def self.load(file_path)
+    YAML::load(File.read(file_path)).play
+  end
 end
 
 class Board
@@ -116,6 +128,10 @@ class Board
     self
   end
   
+  def each_tile(&prc)
+    each { |row, col| prc.call(self[row, col]) }
+  end
+        
   def any?(&prc)
     each do |row, col|
       return true if prc.call(row, col)
@@ -147,10 +163,9 @@ class Board
   end
   
   def print_final_state
-    #flatten array
-   each do |row, col|
-      self[row, col].flag! if self[row, col].flagged?
-      self[row, col].reveal! 
+   each_tile do |tile|
+      tile.flag! if tile.flagged?
+      tile.reveal! 
     end.print_board
   end
   
@@ -173,7 +188,7 @@ class Board
   
   def uncover(move)
     queue = [move]
-    #consider moving to tile class
+
     until queue.empty?
       move = queue.shift
       self[*move].reveal!
