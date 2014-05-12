@@ -3,8 +3,31 @@
 #clear each time
 
 require 'yaml'
+require 'colorize'
+
+def puts(string)
+  modstring = string.split(' ').map do |word|
+    new_word = ""
+    
+    word.each_char do |char|
+      char = char.colorize(:color => String.colors.sample)
+      char = char.blink if rand(7) == 1
+      new_word << char
+    end
+    
+    word = new_word
+    
+    
+    word
+  end.join(' ')
+  Kernel.puts(modstring)
+end
+
 
 class Minesweeper
+
+  
+    
   
   def initialize
     @board = Board.new
@@ -17,9 +40,9 @@ class Minesweeper
       make_move(command, [x - 1, y - 1])
 
       if win?
-        puts "You win!"; break
+        puts "You win!".green.blink; break
       elsif lose?
-        puts "You lose!"; break
+        puts "You lose!".red.blink; break
       end
 
     end
@@ -52,7 +75,7 @@ class Minesweeper
       input = gets.chomp.downcase.split(",")
       if input[0] == "save"
         save("minesweeper.yaml")
-        abort("Game saved!")
+        abort("Game saved!".green)
       elsif input.count != 3
         raise "Wrong number of inputs!"
         
@@ -70,7 +93,7 @@ class Minesweeper
         input
       end
     rescue StandardError => error
-      puts error.message
+      puts error.message.red
       retry
     end
   end
@@ -94,7 +117,18 @@ class Board
     [0, 1], [0, 0], [0, -1],
     [-1, 1], [-1, 0], [-1, -1]
   ]
-    
+  
+  def puts(string)
+    modstring = string.split(' ').map do |word|
+      word = word.colorize(:color => String.colors.sample)
+      if rand(3) == 1
+        word = word.blink
+      end
+      word
+    end.join(' ')
+    Kernel.puts(modstring)
+  end
+  
   def initialize
     @board = Array.new(BOARD_SIDE_LENGTH){ Array.new(BOARD_SIDE_LENGTH) }
     
@@ -147,16 +181,17 @@ class Board
   end
   
   def print_board
+    print ' '
     puts '  ' + (1..BOARD_SIDE_LENGTH).to_a.join(" ")
     
     @board.each_index do |row|
-      print (row + 1 ).to_s + ' '
+      special_print (row + 1 ).to_s + ' '
       
       @board[row].each_index do |col|
         @board[row][col].print_tile
         print ' '
       end
-      puts
+      print "\n"
     end
     
     nil
@@ -199,6 +234,17 @@ class Board
       end
     end
   end
+  
+  def special_print(string)
+    modstring = string.split(' ').map do |word|
+      word = word.colorize(:color => String.colors.sample)
+      if rand(4) == 1
+        word = word.blink
+      end
+      word
+    end.join(' ')
+    Kernel.print(modstring)
+  end
 end
 
 class Tile
@@ -230,13 +276,38 @@ class Tile
   
   def print_tile
     if @flagged
-      print 'F'
+      print "\u2691".green
     elsif !@revealed
-      print '*'
+      print "\u2B1B"
     elsif @value == :mine
-      print '!'
+      print "\u2620".red.blink
     else
-      @num_mines == 0 ? (print '_') : (print @num_mines)
+      @num_mines == 0 ? (print "\u2B1C") : (print fancy_number(@num_mines))
     end
   end
+
+end
+
+def fancy_number(n)
+  case n
+  when 1
+    "\u2460"
+  when 2
+    "\u2461"
+  when 3
+    "\u2462"
+  when 4
+    "\u2463"
+  when 5
+    "\u2464"
+  when 6
+    "\u2465"
+  when 7
+    "\u2466"
+  when 8
+    "\u2467"
+  when 9
+    "\u2468"
+  end
+    
 end
