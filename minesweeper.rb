@@ -7,6 +7,13 @@ class Minesweeper
   def play
     @board.print_board
     command, x, y = get_input
+    make_move(command, [x, y])
+  end
+  
+  def make_move(command, move)
+    if command == "f"
+      @board[*move].flag!
+    end
   end
   
   def get_input
@@ -62,19 +69,38 @@ class Board
     end
   end
   
+  def [](x,y)
+    @board[x][y]
+  end
 end
 
 class Tile
   def initialize(value)
     @value = value
+    @flagged = false
+    @revealed = false
+  end
+  
+  def revealed?
+    @revealed
+  end
+  
+  def flag!
+    @flagged = @flagged ? false : true
   end
   
   def print_tile
-    case @value
-    when nil
+    if @flagged
+      print 'F'
+    elsif !@revealed
       print '*'
-    when :mine
-      print '!'
+    else
+      case @value
+      when nil
+        print '_'
+      when :mine
+        print '!'
+      end
     end
   end
   
