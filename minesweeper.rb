@@ -7,12 +7,14 @@ class Minesweeper
   def play
     @board.print_board
     command, x, y = get_input
-    make_move(command, [x, y])
+    make_move(command, [x - 1, y - 1])
   end
   
   def make_move(command, move)
     if command == "f"
       @board[*move].flag!
+    else # command == 'r'
+      @board.uncover(move)
     end
   end
   
@@ -57,6 +59,15 @@ class Board
         @board[row][col] = Tile.new(elements.pop)
       end
     end
+    
+    @board.each_index do |row|
+      @board[row].each_index do |col|
+        @board[row][col].
+      end
+    end
+    
+    
+    
   end
   
   def print_board
@@ -72,13 +83,28 @@ class Board
   def [](x,y)
     @board[x][y]
   end
+  
+  
+  
+  def uncover(move)
+    queue = [move]
+    until queue.empty?
+      tile = queue.shift
+      tile.reveal!
+      
+    end
+  end
 end
 
 class Tile
+  attr_reader :value
+  attr_accessor :num_mines
+  
   def initialize(value)
     @value = value
     @flagged = false
     @revealed = false
+    @num_mines = nil
   end
   
   def revealed?
@@ -87,6 +113,10 @@ class Tile
   
   def flag!
     @flagged = @flagged ? false : true
+  end
+  
+  def reveal!
+    @revealed = true unless @flagged
   end
   
   def print_tile
