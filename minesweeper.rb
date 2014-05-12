@@ -1,4 +1,38 @@
 class Minesweeper
+  
+  def initialize
+    @board = Board.new
+  end
+  
+  def play
+    @board.print_board
+    command, x, y = get_input
+  end
+  
+  def get_input
+    move = []
+    
+    begin
+      puts "Enter a move: (r/f,x,y)"
+      input = gets.chomp.downcase.split(",")
+      if input.count != 3
+        raise "Wrong number of inputs!"
+      elsif input[0] != "r" && input[0] != "f"
+        raise "Wrong action!"
+      elsif !input[1].to_i.between?(1,Board::BOARD_SIDE_LENGTH)
+        raise "Invalid x coordinate!"
+      elsif !input[2].to_i.between?(1,Board::BOARD_SIDE_LENGTH)
+        raise "Invalid y coordinate!"
+      else
+        input[1..2].map!(&:to_i)
+        input
+      end
+    rescue StandardError => error
+      puts error.message
+      retry
+    end
+  end
+  
 end
 
 class Board
@@ -45,6 +79,3 @@ class Tile
   end
   
 end
-
-board = Board.new
-board.print_board
