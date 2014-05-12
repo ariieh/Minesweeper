@@ -62,7 +62,11 @@ class Board
     
     @board.each_index do |row|
       @board[row].each_index do |col|
-        #@board[row][col].
+        
+        neighbors = surrounding_tiles([row, col]).map{|x, y| self[x, y]}
+        nearby_mines = neighbors.select { |tile| tile.value == :mine }.count
+        @board[row][col].num_mines = nearby_mines
+        
       end
     end
   end
@@ -75,6 +79,8 @@ class Board
       end
       puts
     end
+    
+    nil
   end
   
   def [](x,y)
@@ -88,16 +94,17 @@ class Board
     [x, y + 1], [x, y], [x, y - 1]].select do |x, y| 
       x.between?(0, Board::BOARD_SIDE_LENGTH - 1) &&
       y.between?(0, Board::BOARD_SIDE_LENGTH - 1)
-    end.map{|x, y| self[x, y]}
+    end
   end
   
   def uncover(move)
     queue = [move]
     until queue.empty?
-      tile = queue.shift
+      move = queue.shift
+      tile = self[*move]
       tile.reveal!
       neighbors = surrounding_tiles(move)
-      if neighbors.none? { |tile| tile.value == :mine }
+      if neighbors.map{|x, y| self[x, y]}.none? { |tile| tile.value == :mine }
         queue += neighbors.reject{ |tile| tile.revealed? }
       end
     end
