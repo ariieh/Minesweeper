@@ -105,7 +105,7 @@ class Board
       tile.reveal!
       neighbors = surrounding_tiles(move)
       if neighbors.map{|x, y| self[x, y]}.none? { |tile| tile.value == :mine }
-        queue += neighbors.reject{ |tile| tile.revealed? }
+        queue += neighbors.reject{ |pos| self[*pos].revealed? }
       end
     end
   end
@@ -119,9 +119,8 @@ class Tile
     @value = value
     @flagged = false
     @revealed = false
-    @num_mines = nil
+    @num_mines = 0
   end
-  
   
   
   def revealed?
@@ -144,11 +143,10 @@ class Tile
     else
       case @value
       when nil
-        print '_'
+        @num_mines == 0 ? (print '_') : (print @num_mines)
       when :mine
         print '!'
       end
     end
   end
-  
 end
