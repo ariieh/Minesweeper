@@ -5,11 +5,11 @@ class Minesweeper
   end
   
   def play
-    
     loop do
       @board.print_board
       command, x, y = get_input
       make_move(command, [x - 1, y - 1])
+
       if win?
         puts "You win!"
         break
@@ -17,11 +17,10 @@ class Minesweeper
         puts "You lose!"
         break
       end
+
     end
-    @board.each do |row, col|
-      @board[row, col].flag! if @board[row, col].flagged?
-      @board[row, col].reveal! 
-    end.print_board
+
+    @board.print_final_state
   end
   
   def make_move(command, move)
@@ -81,12 +80,15 @@ class Board
   NUM_MINES = BOARD_SIDE_LENGTH**2/8
   
   def initialize
-    elements = Array.new(NUM_MINES, :mine) 
-    elements += Array.new(BOARD_SIDE_LENGTH**2 - NUM_MINES)
-    elements.shuffle!
-    
     @board = Array.new(BOARD_SIDE_LENGTH){ Array.new(BOARD_SIDE_LENGTH) }
-
+    
+    elements = Array.new(NUM_MINES, :mine) 
+    elements.concat(Array.new(BOARD_SIDE_LENGTH**2 - NUM_MINES)).shuffle!
+    
+    setup_tiles(elements)
+  end
+  
+  def setup_tiles(elements)
     each { |row, col| @board[row][col] = Tile.new(elements.pop) }
     each do |row, col|
       neighbors = surrounding_tiles([row, col]).map{|x, y| self[x, y]}
@@ -134,6 +136,13 @@ class Board
     nil
   end
   
+  def print_final_state
+   each do |row, col|
+      self[row, col].flag! if self[row, col].flagged?
+      self[row, col].reveal! 
+    end.print_board
+  end
+  
   def [](x,y)
     @board[x][y]
   end
@@ -150,10 +159,11 @@ class Board
   
   def uncover(move)
     queue = [move]
+    
     until queue.empty?
       move = queue.shift
-      tile = self[*move]
-      tile.reveal!
+      self[*move].reveal!
+      
       neighbors = surrounding_tiles(move)
       if neighbors.map{|x, y| self[x, y]}.none? { |tile| tile.value == :mine }
         queue += neighbors.reject{ |pos| self[*pos].revealed? }
@@ -172,7 +182,6 @@ class Tile
     @revealed = false
     @num_mines = 0
   end
-  
   
   def revealed?
     @revealed
@@ -195,13 +204,10 @@ class Tile
       print 'F'
     elsif !@revealed
       print '*'
+    elsif @value == :mine
+      print '!'
     else
-      case @value
-      when nil
-        @num_mines == 0 ? (print '_') : (print @num_mines)
-      when :mine
-        print '!'
-      end
+      @num_mines == 0 ? (print '_') : (print @num_mines)
     end
   end
 end
