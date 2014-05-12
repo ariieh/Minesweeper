@@ -5,10 +5,20 @@ class Minesweeper
   end
   
   def play
-    @board.print_board
-    command, x, y = get_input
-    make_move(command, [x - 1, y - 1])
     
+    loop do
+      @board.print_board
+      command, x, y = get_input
+      make_move(command, [x - 1, y - 1])
+      if win?
+        puts "You win!"
+        break
+      elsif lose?
+        puts "You lose!"
+        break
+      end
+    end
+    @board.each{ |row, col| @board[row, col].reveal! }.print_board
   end
   
   def make_move(command, move)
@@ -52,7 +62,7 @@ class Minesweeper
       elsif !input[2].to_i.between?(1,Board::BOARD_SIDE_LENGTH)
         raise "Invalid y coordinate!"
       else
-        input[1..2].map!(&:to_i)
+        input[1..2] = input[1..2].map(&:to_i)
         input
       end
     rescue StandardError => error
@@ -88,6 +98,7 @@ class Board
         prc.call(row, col)
       end
     end
+    self
   end
   
   def any?(&prc)
