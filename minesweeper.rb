@@ -62,12 +62,9 @@ class Board
     
     @board.each_index do |row|
       @board[row].each_index do |col|
-        @board[row][col].
+        #@board[row][col].
       end
     end
-    
-    
-    
   end
   
   def print_board
@@ -84,14 +81,25 @@ class Board
     @board[x][y]
   end
   
-  
+  def surrounding_tiles(pos)
+    x, y = pos
+    [[x + 1, y + 1], [x + 1, y], [x + 1, y - 1],
+    [x - 1, y + 1], [x - 1, y], [x - 1, y - 1],
+    [x, y + 1], [x, y], [x, y - 1]].select do |x, y| 
+      x.between?(0, Board::BOARD_SIDE_LENGTH - 1) &&
+      y.between?(0, Board::BOARD_SIDE_LENGTH - 1)
+    end.map{|x, y| self[x, y]}
+  end
   
   def uncover(move)
     queue = [move]
     until queue.empty?
       tile = queue.shift
       tile.reveal!
-      
+      neighbors = surrounding_tiles(move)
+      if neighbors.none? { |tile| tile.value == :mine }
+        queue += neighbors.reject{ |tile| tile.revealed? }
+      end
     end
   end
 end
@@ -106,6 +114,8 @@ class Tile
     @revealed = false
     @num_mines = nil
   end
+  
+  
   
   def revealed?
     @revealed
