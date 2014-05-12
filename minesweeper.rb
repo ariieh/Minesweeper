@@ -11,16 +11,40 @@ class Board
     elements.shuffle!
     
     @board = Array.new(BOARD_SIDE_LENGTH){ Array.new(BOARD_SIDE_LENGTH) }
-    @board.each do |row|
-      @board.each do |col|
+    @board.each_index do |row|
+      @board[row].each_index do |col|
         @board[row][col] = Tile.new(elements.pop)
       end
     end
   end
+  
+  def print_board
+    @board.each_index do |row|
+      @board[row].each_index do |col|
+        @board[row][col].print_tile
+        print ' '
+      end
+      puts
+    end
+  end
+  
 end
 
 class Tile
   def initialize(value)
     @value = value
   end
+  
+  def print_tile
+    case @value
+    when nil
+      print '*'
+    when :mine
+      print '!'
+    end
+  end
+  
 end
+
+board = Board.new
+board.print_board
