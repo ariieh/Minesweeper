@@ -18,7 +18,10 @@ class Minesweeper
         break
       end
     end
-    @board.each{ |row, col| @board[row, col].reveal! }.print_board
+    @board.each do |row, col|
+      @board[row, col].flag! if @board[row, col].flagged?
+      @board[row, col].reveal! 
+    end.print_board
   end
   
   def make_move(command, move)
@@ -74,8 +77,8 @@ class Minesweeper
 end
 
 class Board
-  NUM_MINES = 10
-  BOARD_SIDE_LENGTH = 9
+  BOARD_SIDE_LENGTH = 4
+  NUM_MINES = BOARD_SIDE_LENGTH**2/8
   
   def initialize
     elements = Array.new(NUM_MINES, :mine) 
@@ -116,7 +119,11 @@ class Board
   end
   
   def print_board
+    puts '  ' + (1..BOARD_SIDE_LENGTH).to_a.join(" ")
+    
     @board.each_index do |row|
+      print (row + 1 ).to_s + ' '
+      
       @board[row].each_index do |col|
         @board[row][col].print_tile
         print ' '
