@@ -8,6 +8,7 @@ class Minesweeper
     @board.print_board
     command, x, y = get_input
     make_move(command, [x - 1, y - 1])
+    
   end
   
   def make_move(command, move)
@@ -16,6 +17,10 @@ class Minesweeper
     else # command == 'r'
       @board.uncover(move)
     end
+  end
+
+  def over?
+    
   end
   
   def get_input
@@ -54,12 +59,9 @@ class Board
     elements.shuffle!
     
     @board = Array.new(BOARD_SIDE_LENGTH){ Array.new(BOARD_SIDE_LENGTH) }
-    @board.each_index do |row|
-      @board[row].each_index do |col|
-        @board[row][col] = Tile.new(elements.pop)
-      end
-    end
-    
+
+    each { |row, col| @board[row][col] = Tile.new(elements.pop) }
+
     @board.each_index do |row|
       @board[row].each_index do |col|
         
@@ -67,6 +69,14 @@ class Board
         nearby_mines = neighbors.select { |tile| tile.value == :mine }.count
         @board[row][col].num_mines = nearby_mines
         
+      end
+    end
+  end
+  
+  def each(&prc)
+    @board.each_index do |row|
+      @board[row].each_index do |col|
+        prc.call(row, col)
       end
     end
   end
