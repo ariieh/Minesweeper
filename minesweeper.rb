@@ -17,7 +17,6 @@ def puts(string)
     
     word = new_word
     
-    
     word
   end.join(' ')
   Kernel.puts(modstring)
@@ -25,10 +24,6 @@ end
 
 
 class Minesweeper
-
-  
-    
-  
   def initialize
     @board = Board.new
   end
@@ -311,3 +306,5 @@ def fancy_number(n)
   end
     
 end
+
+Minesweeper.new.play
